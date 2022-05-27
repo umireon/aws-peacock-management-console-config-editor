@@ -6,5 +6,6 @@ export default defineConfig({
   plugins: [react()],
   build: {
     outDir: 'docs'
-  }
+  },
+  base: 'https://umireon.github.io/aws-peacock-management-console-config-editor/'
 })
