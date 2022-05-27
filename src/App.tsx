@@ -1,45 +1,132 @@
+import Form, { IChangeEvent, ISubmitEvent } from '@rjsf/core'
 import { useState } from 'react'
-import logo from './logo.svg'
+import { JSONSchema7 } from 'json-schema'
 import './App.css'
+import 'bootstrap/dist/css/bootstrap.css'
 
-function App() {
-  const [count, setCount] = useState(0)
-
-  return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>Hello Vite + React!</p>
-        <p>
-          <button type="button" onClick={() => setCount((count) => count + 1)}>
-            count is: {count}
-          </button>
-        </p>
-        <p>
-          Edit <code>App.tsx</code> and save to test HMR updates.
-        </p>
-        <p>
-          <a
-            className="App-link"
-            href="https://reactjs.org"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Learn React
-          </a>
-          {' | '}
-          <a
-            className="App-link"
-            href="https://vitejs.dev/guide/features.html"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Vite Docs
-          </a>
-        </p>
-      </header>
-    </div>
-  )
+export interface Environment {
+  readonly account: string
+  readonly region?: string
 }
 
-export default App
+export interface Style {
+  readonly navigationBackgroundColor?: string
+  readonly accountMenuButtonBackgroundColor?: string
+}
+
+export interface Config {
+  readonly env: Environment[]
+  readonly style: Style
+}
+
+export type ConfigList = Config[]
+
+const initialConfig: ConfigList = [
+  {
+    env: [
+      {
+        account: '111111111111'
+      }
+    ],
+    style: {
+      navigationBackgroundColor: '#65c89b',
+      accountMenuButtonBackgroundColor: '#945bc4'
+    }
+  },
+  {
+    env: [
+      {
+        account: '222222222222',
+        region: 'us-east-1'
+      },
+      {
+        account: '333333333333'
+      }
+    ],
+    style: {
+      navigationBackgroundColor: '#3399ff',
+      accountMenuButtonBackgroundColor: '#bf0060'
+    }
+  }
+]
+
+
+export const CONFIG_SCHEMA: JSONSchema7 = {
+  $schema: 'http://json-schema.org/draft-07/schema#',
+  type: 'array',
+  items: {
+    type: 'object',
+    required: ['env'],
+    properties: {
+      env: {
+        title: 'Environment',
+        type: 'array',
+        items: {
+          type: 'object',
+          required: ['account'],
+          properties: {
+            account: {
+              title: 'Account',
+              type: 'string',
+              pattern: '^\\d{12}$',
+            },
+            region: {
+              title: 'Region',
+              type: 'string',
+            },
+          },
+        },
+      },
+      style: {
+        title: 'Style',
+        type: 'object',
+        properties: {
+          navigationBackgroundColor: {
+            title: 'Navigation Background Color',
+            type: 'string',
+          },
+          accountMenuButtonBackgroundColor: {
+            title: 'Account Menu Button Color',
+            type: 'string',
+          },
+        },
+      },
+    },
+  },
+  definitions: {
+    env: {
+      type: 'object',
+      required: ['account'],
+      properties: {
+        account: {
+          title: 'Account',
+          type: 'string',
+          pattern: '^\\d{12}$',
+        },
+        region: {
+          title: 'Region',
+          type: 'string',
+        },
+      },
+    },
+  },
+}
+
+export const App = () => {
+  const [config, setConfig] = useState(initialConfig)
+  const handleChange = (e: IChangeEvent<ConfigList>) => {
+    setConfig(e.formData)
+  }
+  return (
+    <main id="main">
+      <Form
+        schema={CONFIG_SCHEMA}
+        formData={config}
+        onChange={handleChange}
+      />
+      <textarea>
+        {JSON.stringify(config, null, 2)}
+      </textarea>
+    </main>
+  )
+}
